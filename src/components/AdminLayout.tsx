@@ -1,85 +1,187 @@
-import { ReactNode } from 'react';
-import { LayoutDashboard, Package, ShoppingCart, Users, Settings, FileText, BarChart3, Menu, Bell, User } from 'lucide-react';
+// src/components/MainLayout.tsx
+import React, { useState } from "react";
+import { FaToggleOn, FaToggleOff } from "react-icons/fa";
+import {
+  AiOutlineDashboard,
+  AiOutlineShoppingCart,
+  AiOutlineUser,
+} from "react-icons/ai";
+import { RiCouponLine } from "react-icons/ri";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Outlet } from "react-router-dom";
+import { ImBlog } from "react-icons/im";
+import { FaClipboardList } from "react-icons/fa";
+import { AiFillProduct } from "react-icons/ai";
+import { Layout, Menu, theme } from "antd";
+import { useNavigate } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
+import { IoMdSettings } from "react-icons/io";
+import { useAppSelector } from "../redux/hook";
 
-interface AdminLayoutProps {
-  children: ReactNode;
-}
+const { Header, Sider, Content } = Layout;
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Tổng quan', path: '/' },
-    { icon: ShoppingCart, label: 'Bán hàng', path: '/sales' },
-    { icon: Package, label: 'Hàng hóa', path: '/products' },
-    { icon: Users, label: 'Khách hàng', path: '/customers' },
-    { icon: FileText, label: 'Hóa đơn', path: '/invoices' },
-    { icon: BarChart3, label: 'Báo cáo', path: '/reports' },
-    { icon: Settings, label: 'Cài đặt', path: '/settings' },
-  ];
+const MainLayout = () => {
+  const [collapsed, setCollapsed] = useState(false); // mặc định collapsed
+  const {currentUser, currentShop} = useAppSelector((state) => state.auth);
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+  const navigate = useNavigate();
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl text-gray-800">Admin POS</span>
-          </div>
+    <Layout className="h-screen">
+      {/* Sidebar cố định hoàn toàn */}
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        width={200}
+        collapsedWidth={100}
+        className="fixed left-0 top-0 h-full z-50 overflow-hidden"
+        style={{ background: '#001529' }}
+      >
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-center border-b border-gray-700">
+          <h2 className="text-white fs-5 text-center mb-0">
+            <span className="sm-logo">TNS POS </span>
+            {!collapsed && <span className="lg-logo">{currentShop?.name}</span>}
+          </h2>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4">
-          {menuItems.map((item) => (
-            <a
-              key={item.path}
-              href={item.path}
-              className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
-            </a>
-          ))}
-        </nav>
+        {/* Menu */}
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={["dashboard"]}
+          onClick={({ key }) => {
+            if (key === "signout") {
+              // logout
+            } else {
+              navigate(key);
+            }
+          }}
+          items={[
+            {
+              key: "dashboard",
+              icon: <AiOutlineDashboard className="fs-4" />,
+              label: "Thống kê",
+            },
+            {
+              key: "customers",
+              icon: <AiOutlineUser className="fs-4" />,
+              label: "Người dùng",
+              children:[
+                {key:"suppliers", icon:<AiOutlineUser className="fs-4" />, label:"Nhà cung cấp"},
+                {key:"customers", icon:<AiOutlineUser className="fs-4" />, label:"Khách hàng"},
+              ]
+            },
+            {
+              key: "Catalog",
+              icon: <AiFillProduct className="fs-4" />,
+              label: "Hàng Hoá",
+              children: [
+                { key: "product", icon: <AiOutlineShoppingCart className="fs-4" />, label: "Thêm sản phẩm" },
+                { key: "list-product", icon: <AiOutlineShoppingCart className="fs-4" />, label: "Danh sách sản phẩm" },
+              ],
+            },
+            {
+              key: "orders",
+              icon: <FaClipboardList className="fs-4" />,
+              label: "Đơn hàng",
+            },
+            {
+              key: "marketing",
+              icon: <RiCouponLine className="fs-4" />,
+              label: "Mã giảm giá",
+              children: [
+                { key: "coupon", icon: <ImBlog className="fs-4" />, label: "Thêm mã giảm giá" },
+                { key: "coupon-list", icon: <RiCouponLine className="fs-4" />, label: "Danh sách mã giảm giá" },
+              ],
+            },
+            {
+              key: "enquiries",
+              icon: <FaClipboardList className="fs-4" />,
+              label: "Phản hồi",
+            },
+            {
+              key: "settings",
+              icon: <IoMdSettings className="fs-4" />,
+              label: "Cài đặt",
+            },
+          ]}
+          className="flex-1 overflow-y-auto"
+        />
 
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3 px-2">
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-              <User className="w-6 h-6 text-gray-600" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">Admin User</p>
-              <p className="text-xs text-gray-500">admin@store.com</p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-          <button className="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
-            <Menu className="w-6 h-6 text-gray-600" />
+        {/* Nút Bán hàng – cố định dưới cùng */}
+        <div className="border-t border-gray-600 p-4">
+          <button
+            onClick={() => navigate("/sales")}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium text-base shadow"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {!collapsed && <span>Bán hàng</span>}
           </button>
+        </div>
 
-          <div className="flex-1 max-w-2xl mx-4">
-            <input
-              type="text"
-              placeholder="Tìm kiếm sản phẩm, hóa đơn, khách hàng..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+        {/* User info – ở đáy */}
+        <div className="p-4 bg-gray-800 text-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              A
+            </div>
+            {!collapsed && (
+              <div>
+                <p className="text-sm font-semibold">{currentUser?.username}</p>
+                <p className="text-xs opacity-80">{currentUser?.email}</p>
+              </div>
+            )}
           </div>
+        </div>
+      </Sider>
 
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 hover:bg-gray-100 rounded-lg">
-              <Bell className="w-6 h-6 text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
-      </div>
-    </div>
+      {/* Content – lệch phải để không bị đè sidebar */}
+      <Layout className={collapsed ? "ml-24" : "ml-52 transition-all duration-300"}> {/* 80px khi collapsed, 280px khi mở */}
+        <Header
+          className="d-flex justify-content-between ps-1 pe-5"
+          style={{
+            padding: "25px 0 0 25px",
+            background: colorBgContainer,
+          }}
+        >
+            {React.createElement(
+            collapsed ? FaToggleOff : FaToggleOn,
+            {
+              className: "trigger",
+              onClick: () => setCollapsed(!collapsed),
+            }
+          )}
+        </Header>
+        <Content
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            minHeight: 280,
+            background: colorBgContainer,
+            overflow: "auto", // scroll riêng
+          }}
+        >
+          <ToastContainer
+            position="top-right"
+            autoClose={250}
+            hideProgressBar={false}
+            newestOnTop={true}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            theme="light"
+          />
+          <Outlet />
+        </Content>
+      </Layout>
+    </Layout>
   );
-}
+};
+
+export default MainLayout;
